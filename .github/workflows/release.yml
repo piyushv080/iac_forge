@@ -29,7 +29,6 @@ jobs:
           echo "COLL_DIR=${dir}" >> "$GITHUB_ENV"
 
       - run: ansible-galaxy collection build "$COLL_DIR" --output-path dist
-      - run: ansible-galaxy collection publish dist/*.tar.gz --api-key "${{ secrets.GALAXY_API_KEY }}"
 
       - uses: softprops/action-gh-release@v2
         with:
