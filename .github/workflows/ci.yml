@@ -9,36 +9,38 @@ permissions:
   contents: read
 
 jobs:
-  sanity:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ansible: [stable-2.17, stable-2.18, milestone]
+        collection: [snowflake_iac]          # add new collections here
+        ansible: [stable-2.17, stable-2.18, stable-2.19, stable-2.20, stable-2.21]
+    defaults:
+      run:
+        working-directory: ansible_collections/iacforge/${{ matrix.collection }}
     steps:
-      # ansible-test needs the collection at ansible_collections/<namespace>/<name>
       - uses: actions/checkout@v4
-        with:
-          path: ansible_collections/iacforge/snowflake_iac
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz
-      - name: Sanity tests
-        working-directory: ansible_collections/iacforge/snowflake_iac
+      - name: Sanity
         run: ansible-test sanity --docker -v --color
-      - name: Unit tests
-        working-directory: ansible_collections/iacforge/snowflake_iac
-        run: ansible-test units --docker -v --color
+      - name: Unit tests (Snowflake connector needs Python >= 3.9)
+        run: ansible-test units --docker -v --color --python 3.12
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        collection: [snowflake_iac]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install ansible-core
-      - run: ansible-galaxy collection build
-      - run: ansible-galaxy collection install iacforge-snowflake_iac-*.tar.gz -p /tmp/collections
-      - run: ANSIBLE_COLLECTIONS_PATH=/tmp/collections ansible-doc -l iacforge.snowflake_iac
+      - run: ansible-galaxy collection build ansible_collections/iacforge/${{ matrix.collection }} --output-path dist
+      - run: ansible-galaxy collection install dist/*.tar.gz -p /tmp/collections
+      - run: ANSIBLE_COLLECTIONS_PATH=/tmp/collections ansible-doc -l iacforge.${{ matrix.collection }}

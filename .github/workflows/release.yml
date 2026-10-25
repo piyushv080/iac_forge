@@ -1,9 +1,9 @@
 name: release
 
-# Push a tag like v0.1.0 (must match version in galaxy.yml) to publish to Ansible Galaxy.
+# Tag format: <collection>-v<version>   e.g.  snowflake_iac-v0.1.0
 on:
   push:
-    tags: ["v*"]
+    tags: ["*-v*"]
 
 permissions:
   contents: write
@@ -18,19 +18,20 @@ jobs:
           python-version: "3.12"
       - run: pip install ansible-core pyyaml
 
-      - name: Tag must match galaxy.yml version
+      - name: Resolve collection from tag
         run: |
-          v=$(python -c "import yaml;print(yaml.safe_load(open('galaxy.yml'))['version'])")
-          [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "tag ${GITHUB_REF_NAME} != galaxy.yml version $v"; exit 1; }
+          tag="${GITHUB_REF_NAME}"
+          coll="${tag%-v*}"; ver="${tag##*-v}"
+          dir="ansible_collections/iacforge/${coll}"
+          [ -f "${dir}/galaxy.yml" ] || { echo "no collection '${coll}'"; exit 1; }
+          v=$(python -c "import yaml;print(yaml.safe_load(open('${dir}/galaxy.yml'))['version'])")
+          [ "$v" = "$ver" ] || { echo "tag version ${ver} != galaxy.yml version ${v}"; exit 1; }
+          echo "COLL_DIR=${dir}" >> "$GITHUB_ENV"
 
-      - name: Build
-        run: ansible-galaxy collection build
+      - run: ansible-galaxy collection build "$COLL_DIR" --output-path dist
+      - run: ansible-galaxy collection publish dist/*.tar.gz --api-key "${{ secrets.GALAXY_API_KEY }}"
 
-      - name: Publish to Ansible Galaxy
-        run: ansible-galaxy collection publish iacforge-snowflake_iac-*.tar.gz --api-key "${{ secrets.GALAXY_API_KEY }}"
-
-      - name: Attach tarball to GitHub release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
-          files: iacforge-snowflake_iac-*.tar.gz
+          files: dist/*.tar.gz
           generate_release_notes: true
