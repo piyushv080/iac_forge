@@ -1,0 +1,15 @@
+---
+requires_ansible: ">=2.15.0"
+
+# Lets playbooks set the connection once:
+#   module_defaults:
+#     group/iacforge.snowflake_iac.snowflake: { account: ..., user: ..., private_key: ... }
+action_groups:
+  snowflake:
+    - snowflake_query
+    - snowflake_warehouse
+    - snowflake_database
+    - snowflake_role
+    - snowflake_grant
+    - snowflake_user
+    - snowflake_resource_monitor

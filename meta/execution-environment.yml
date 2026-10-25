@@ -1,0 +1,6 @@
+---
+# Read by ansible-builder: building an execution environment that includes this
+# collection automatically installs these Python packages.
+version: 1
+dependencies:
+  python: meta/ee-requirements.txt

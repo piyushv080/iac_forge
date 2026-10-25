@@ -1,0 +1,30 @@
+---
+namespace: iacforge
+name: snowflake_iac
+version: 0.1.0
+readme: README.md
+authors:
+  - iacforge contributors
+description: >-
+  Snowflake infrastructure as code - idempotent modules for warehouses, databases, roles, grants,
+  users (key-pair auth and rotation), resource monitors and SQL, plus an Event-Driven Ansible source.
+license:
+  - GPL-3.0-or-later
+tags:
+  - snowflake
+  - database
+  - cloud
+  - infrastructure
+  - iac
+  - dataops
+dependencies: {}
+repository: https://github.com/piyushv080/iac_forge
+documentation: https://github.com/piyushv080/iac_forge#readme
+homepage: https://github.com/piyushv080/iac_forge
+issues: https://github.com/piyushv080/iac_forge/issues
+build_ignore:
+  - .github
+  - tests/output
+  - '*.tar.gz'
+  - .gitignore
+  - .gitattributes
